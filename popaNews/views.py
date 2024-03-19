@@ -72,6 +72,12 @@ class ArticleView(APIView):
             if request.data.get(param) is None:
                 return Response('Missing parameter', status=status.HTTP_503_SERVICE_UNAVAILABLE)
             
+        if request.data.get("category").upper() not in ['POL', 'ART', 'TECH', 'TRIVIA']:
+            return Response('Invalid category', status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        
+        if request.data.get("region").upper() not in ['UK', 'EU', 'W']:
+            return Response('Invalid region', status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            
         article = Article(category=request.data.get('category'), headline=request.data.get('headline'), region=request.data.get('region'), details=request.data.get('details'), author=request.user)
         article.save()
 
