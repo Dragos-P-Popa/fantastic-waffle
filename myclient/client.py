@@ -12,6 +12,9 @@ try:
         pickleData = pickle.load(inp)
         url = pickleData['url']
         session = pickleData['session']
+
+        if (session == ''):
+            session = requests.Session()
 except FileNotFoundError:
     print("No session data found")
     pass # not logged in
@@ -31,11 +34,8 @@ def login():
         'password': password
     }
 
-    csrftoken = session.cookies['csrftoken']
-
     headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-CSRFToken': csrftoken
+        'Content-Type': 'application/x-www-form-urlencoded'
     }
 
     response = session.post(url + "/api/login", data=data, headers=headers)
@@ -190,10 +190,24 @@ def delete():
         print(response.text)
 
 if sys.argv[1] == "login":
+    if session.cookies.get_dict().get('sessionid') is not None:
+        print("Already logged in")
+        sys.exit()
+
     login()
-elif sys.argv[1] == "logout":
+
+if sys.argv[1] == "logout":
+    if session.cookies.get_dict().get('sessionid') is None:
+        print("Not logged in")
+        sys.exit()
+
     logout()
-elif sys.argv[1] == "news":
+
+if session.cookies.get_dict().get('sessionid') is None:
+    print("Not logged in")
+    sys.exit()
+
+if sys.argv[1] == "news":
     news()
 elif sys.argv[1] == "list":
     listAgencies()
