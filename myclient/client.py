@@ -22,6 +22,9 @@ except FileNotFoundError:
 def login():
     try:
         url = sys.argv[2]
+
+        if url[:4] != "http":
+            url = "http://" + url
     except IndexError:
         print("No URL provided")
         return
@@ -57,7 +60,7 @@ def logout():
         'X-CSRFToken': csrftoken
     }
 
-    response = session.post(url + "/api/logout", headers=headers)
+    response = session.post('http://' + url.split('://')[1] + "/api/logout", headers=headers)
 
     if response.status_code == 200:
         print("Logged out of %s" % url)
@@ -83,9 +86,9 @@ def news():
             if key == "-id":
                 id = value
             elif key == "-cat":
-                cat = value
+                cat = value.upper()
             elif key == "-reg":
-                reg = value
+                reg = value.upper()
             elif key == "-date":
                 date = value
 
@@ -105,6 +108,8 @@ def news():
             agencies = agencies[:20]
 
         for agency in agencies:
+            print(f"Getting articles from {agency['agency_name']} - {agency['url']}")
+
             article = session.get(agency['url'] + "/api/stories", params={
                 "story_cat": cat,
                 "story_region": reg,
@@ -114,7 +119,7 @@ def news():
             if article.status_code == 200:
                 print(json.dumps(article.json(), indent=4))
             else:
-                print("Failed to get articles from %s" % article.url)
+                print(f"Failed to get articles from {agency['agency_name']} - {agency['url']}")
     else:
         url = ''
         for agency in agencies:
@@ -133,7 +138,7 @@ def news():
         })
 
         if articles.status_code == 200:
-            print(articles.json())
+            print(json.dumps(articles.json(), indent=4))
         elif articles.status_code == 404:
             print(articles.text)
         else:
@@ -152,7 +157,7 @@ def post():
         'X-CSRFToken': csrftoken
     }
 
-    newStory = session.post(url + "api/stories", headers=headers, json={
+    newStory = session.post(url + "/api/stories", headers=headers, json={
         "headline": headline,
         "category": category,
         "region": region,
@@ -181,7 +186,7 @@ def delete():
         'X-CSRFToken': csrftoken
     }
 
-    response = session.delete(url + "api/stories/" + sys.argv[2], headers=headers)
+    response = session.delete(url + "/api/stories/" + sys.argv[2], headers=headers)
 
     if response.status_code == 200:
         print("Story deleted")
